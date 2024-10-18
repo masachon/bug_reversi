@@ -44,26 +44,30 @@ module ReversiMethods
     pos = Position.new(cell_ref)
     raise '無効なポジションです' if pos.invalid?
     raise 'すでに石が置かれています' unless pos.stone_color(board) == BLANK_CELL
-
+  
     # コピーした盤面にて石の配置を試みて、成功すれば反映する
     copied_board = Marshal.load(Marshal.dump(board))
-    copied_board[pos.col][pos.row] = stone_color
-
+    copied_board[pos.row][pos.col] = stone_color
+  
     turn_succeed = false
     Position::DIRECTIONS.each do |direction|
       next_pos = pos.next_position(direction)
-      turn_succeed = true if turn(copied_board, next_pos, stone_color, direction)
+      if turn(copied_board, next_pos, stone_color, direction)
+        turn_succeed = true
+      end
     end
-
+  
     copy_board(board, copied_board) if !dry_run && turn_succeed
-
+  
     turn_succeed
   end
+  
 
   def turn(board, target_pos, attack_stone_color, direction)
     return false if target_pos.out_of_board?
     return false if target_pos.stone_color(board) == attack_stone_color
-
+    return false if target_pos.stone_color(board) == BLANK_CELL
+  
     next_pos = target_pos.next_position(direction)
     if (next_pos.stone_color(board) == attack_stone_color) || turn(board, next_pos, attack_stone_color, direction)
       board[target_pos.row][target_pos.col] = attack_stone_color
@@ -72,21 +76,25 @@ module ReversiMethods
       false
     end
   end
-
+  
   def finished?(board)
     !placeable?(board, WHITE_STONE) && !placeable?(board, BLACK_STONE)
   end
-
+  
   def placeable?(board, attack_stone_color)
     board.each_with_index do |cols, row|
       cols.each_with_index do |cell, col|
         next unless cell == BLANK_CELL
-
+  
         position = Position.new(row, col)
-        return true if put_stone(board, position.to_cell_ref, attack_stone_color, dry_run: true)
+        if put_stone(board, position.to_cell_ref, attack_stone_color, dry_run: true)
+          return true
+        end
       end
     end
+    false
   end
+  
 
   def count_stone(board, stone_color)
     board.flatten.count { |cell| cell == stone_color }
