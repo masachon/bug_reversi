@@ -58,7 +58,7 @@ module ReversiMethods
     copy_board(board, copied_board) if !dry_run && turn_succeed
 
     turn_succeed
-  end 
+  end
 
   def turn(board, target_pos, attack_stone_color, direction)
     return false if target_pos.out_of_board?
@@ -73,7 +73,7 @@ module ReversiMethods
       false
     end
   end
-  
+
   def finished?(board)
     !placeable?(board, WHITE_STONE) && !placeable?(board, BLACK_STONE)
   end
